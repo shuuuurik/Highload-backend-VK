@@ -7,7 +7,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.NoSuchElementException;
 
 public class EntityHandler extends BaseHttpHandler {
     private static final Logger log = LoggerFactory.getLogger(EntityHandler.class);
@@ -58,11 +57,6 @@ public class EntityHandler extends BaseHttpHandler {
     }
 
     private byte[] getEntityDao(String id) throws IOException {
-        byte[] bytes = dao.get(id);
-        if (bytes == null) {
-            log.warn("Ошибка при поиске id={}", id);
-            throw new NoSuchElementException("Entity с id " + id + " не найден");
-        }
-        return bytes;
+        return dao.get(id);
     }
 }

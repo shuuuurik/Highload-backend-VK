@@ -1,31 +1,35 @@
 package company.vk.edu.distrib.compute.aldor7705;
 
 import company.vk.edu.distrib.compute.Dao;
+import company.vk.edu.distrib.compute.aldor7705.storage.DaoFileStorage;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.nio.file.Path;
 
 public class EntityDao implements Dao<byte[]> {
 
-    private final Map<String, byte[]> storage = new ConcurrentHashMap<>();
+    public final DaoFileStorage storage;
+
+    public EntityDao(Path path) {
+        this.storage = new DaoFileStorage(path);
+    }
 
     @Override
     public byte[] get(String key) {
-        return storage.get(key);
+        return storage.readFromFile(key);
     }
 
     @Override
     public void upsert(String key, byte[] value) {
-        storage.put(key, value);
+        storage.save(key, value);
     }
 
     @Override
     public void delete(String key) {
-        storage.remove(key);
+        storage.deleteFromFile(key);
     }
 
     @Override
     public void close() {
-        storage.clear();
+        storage.clearFile();
     }
 }
