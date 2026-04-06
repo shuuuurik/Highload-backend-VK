@@ -64,6 +64,7 @@ public class KVServiceImpl implements KVService {
                 default: {
                     exchange.sendResponseHeaders(HttpURLConnection.HTTP_BAD_METHOD, -1);
                     exchange.close();
+                    break;
                 }
             }
         });
@@ -88,8 +89,6 @@ public class KVServiceImpl implements KVService {
             }
         } catch (NoSuchElementException e) {
             exchange.sendResponseHeaders(HttpURLConnection.HTTP_NOT_FOUND, -1);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         } finally {
             exchange.close();
         }
