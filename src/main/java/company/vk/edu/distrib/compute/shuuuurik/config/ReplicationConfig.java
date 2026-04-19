@@ -22,7 +22,14 @@ public class ReplicationConfig {
 
     /**
      * Загружает конфигурацию из classpath-ресурса.
-     * Если файл не найден или свойство отсутствует - использует дефолтные значения.
+     *
+     * <p>Если файл не найден или свойство отсутствует -
+     * использует дефолтное значение ({@value DEFAULT_REPLICATION_FACTOR}).
+     * Если свойство присутствует, но содержит невалидное значение -
+     * выбрасывает {@link IllegalArgumentException}.
+     *
+     * @throws IllegalArgumentException если значение replication.factor не является
+     *                                  числом или выходит за допустимые границы
      */
     public ReplicationConfig() {
         this.replicationFactor = loadReplicationFactor();
@@ -30,9 +37,13 @@ public class ReplicationConfig {
 
     /**
      * Загружает значение {@code replication.factor} из properties-файла в classpath.
-     * При любой ошибке загрузки возвращает дефолтное значение и логирует предупреждение.
      *
-     * @return фактор репликации из файла или {@value DEFAULT_REPLICATION_FACTOR} по умолчанию
+     * <p>Если файл не найден или свойство отсутствует - возвращает {@value DEFAULT_REPLICATION_FACTOR}.
+     * Если свойство присутствует, но невалидно (не число, <= 0 или > MAX_CLUSTER_SIZE) -
+     * выбрасывает {@link IllegalArgumentException}.
+     *
+     * @return фактор репликации
+     * @throws IllegalArgumentException если значение свойства невалидно
      */
     private static int loadReplicationFactor() {
         Properties props = new Properties();
