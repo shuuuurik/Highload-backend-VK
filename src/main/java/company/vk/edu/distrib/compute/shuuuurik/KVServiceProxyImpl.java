@@ -91,18 +91,19 @@ public class KVServiceProxyImpl implements KVService {
         if (!started.compareAndSet(false, true)) {
             throw new IllegalStateException("Service already started");
         }
+        HttpClient newHttpClient = HttpClient.newHttpClient();
         try {
-            this.httpClient = HttpClient.newHttpClient();
-
             HttpServer newServer = HttpServer.create();
             newServer.createContext(PATH_STATUS, this::handleStatus);
             newServer.createContext(PATH_ENTITY, this::handleEntity);
             newServer.bind(new InetSocketAddress(InetAddress.getLoopbackAddress(), port), 0);
             newServer.start();
+            this.httpClient = newHttpClient;
             this.server = newServer;
             log.info("Started shard node {}", selfEndpoint);
         } catch (IOException e) {
             started.set(false);
+            httpClient.close();
             throw new UncheckedIOException("Failed to start node " + selfEndpoint, e);
         }
     }
