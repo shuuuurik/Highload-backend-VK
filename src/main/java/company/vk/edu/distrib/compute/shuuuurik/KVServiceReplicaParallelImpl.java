@@ -262,13 +262,15 @@ public class KVServiceReplicaParallelImpl implements ReplicatedService {
             List<Integer> replicaIndices
     ) throws IOException {
         List<Callable<Optional<VersionedEntry>>> tasks = buildReadTasks(id, replicaIndices);
-        List<VersionedEntry> responses = parallelExecutor.collectSuccesses(tasks, ack, id, "GET");
+        Optional<List<VersionedEntry>> result = parallelExecutor.collectSuccesses(tasks, ack, id, "GET");
 
-        if (responses == null) {
+        if (result.isEmpty()) {
             // Недостаточно подтверждений
             exchange.sendResponseHeaders(STATUS_INSUFFICIENT_REPLICAS, -1);
             return;
         }
+
+        List<VersionedEntry> responses = result.get();
 
         if (responses.isEmpty()) {
             // Все ответившие реплики не нашли ключ
@@ -335,9 +337,9 @@ public class KVServiceReplicaParallelImpl implements ReplicatedService {
         VersionedEntry entry = new VersionedEntry(body, System.currentTimeMillis());
 
         List<Callable<Optional<VersionedEntry>>> tasks = buildWriteTasks(id, entry, replicaIndices, "PUT");
-        List<VersionedEntry> successes = parallelExecutor.collectSuccesses(tasks, ack, id, "PUT");
+        Optional<List<VersionedEntry>> successes = parallelExecutor.collectSuccesses(tasks, ack, id, "PUT");
 
-        exchange.sendResponseHeaders(successes != null ? 201 : STATUS_INSUFFICIENT_REPLICAS, -1);
+        exchange.sendResponseHeaders(successes.isPresent() ? 201 : STATUS_INSUFFICIENT_REPLICAS, -1);
     }
 
     /**
@@ -359,9 +361,9 @@ public class KVServiceReplicaParallelImpl implements ReplicatedService {
         VersionedEntry tombstone = new VersionedEntry(System.currentTimeMillis());
 
         List<Callable<Optional<VersionedEntry>>> tasks = buildWriteTasks(id, tombstone, replicaIndices, "DELETE");
-        List<VersionedEntry> successes = parallelExecutor.collectSuccesses(tasks, ack, id, "DELETE");
+        Optional<List<VersionedEntry>> successes = parallelExecutor.collectSuccesses(tasks, ack, id, "DELETE");
 
-        exchange.sendResponseHeaders(successes != null ? 202 : STATUS_INSUFFICIENT_REPLICAS, -1);
+        exchange.sendResponseHeaders(successes.isPresent() ? 202 : STATUS_INSUFFICIENT_REPLICAS, -1);
     }
 
     /**
