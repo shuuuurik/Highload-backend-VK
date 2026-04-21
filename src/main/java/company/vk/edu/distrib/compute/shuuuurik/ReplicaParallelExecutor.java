@@ -57,10 +57,10 @@ public class ReplicaParallelExecutor {
      * @param ack       требуемое число успешных завершений
      * @param key       ключ для логирования
      * @param operation название операции для логирования
-     * @return список {@link VersionedEntry} из успешных read-задач,
-     *     пустой список для write-задач, или {@code null} если ack не набран
+     * @return {@link Optional} со списком {@link VersionedEntry} из успешных read-задач
+     *     (пустой список для write-задач) или {@link Optional#empty()} если ack не набран
      */
-    List<VersionedEntry> collectSuccesses(
+    Optional<List<VersionedEntry>> collectSuccesses(
             List<Callable<Optional<VersionedEntry>>> tasks,
             int ack,
             String key,
@@ -84,9 +84,9 @@ public class ReplicaParallelExecutor {
      * @param ack               порог успехов
      * @param key               ключ для логирования
      * @param operation         операция для логирования
-     * @return список найденных значений или {@code null} при нехватке подтверждений
+     * @return список найденных значений или {@code Optional.empty()} при нехватке подтверждений
      */
-    private List<VersionedEntry> drainUntilAck(
+    private Optional<List<VersionedEntry>> drainUntilAck(
             ExecutorCompletionService<Optional<VersionedEntry>> completionService,
             int submitted,
             int ack,
@@ -120,10 +120,10 @@ public class ReplicaParallelExecutor {
         if (successCount < ack) {
             log.warn("{} key={}: only {}/{} acks (failures={})",
                     operation, key, successCount, ack, failureCount);
-            return null;
+            return Optional.empty();
         }
 
-        return foundValues;
+        return Optional.of(foundValues);
     }
 
     /**
