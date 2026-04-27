@@ -40,7 +40,8 @@ public class ConsistentHashRouter implements NodeRouter {
         if (nodes == null || nodes.isEmpty()) {
             throw new IllegalArgumentException("nodes must not be null or empty");
         }
-
+        // Параметр nodes не используется — кольцо построено в конструкторе.
+        // Предполагается, что nodes совпадает со списком, переданным при создании.
         long keyHash = hashToRing(key);
 
         NavigableMap<Long, String> tailMap = ring.tailMap(keyHash, true);

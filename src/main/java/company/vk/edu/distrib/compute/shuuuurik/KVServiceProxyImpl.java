@@ -103,7 +103,7 @@ public class KVServiceProxyImpl implements KVService {
             log.info("Started shard node {}", selfEndpoint);
         } catch (IOException e) {
             started.set(false);
-            httpClient.close();
+            newHttpClient.close();
             throw new UncheckedIOException("Failed to start node " + selfEndpoint, e);
         }
     }

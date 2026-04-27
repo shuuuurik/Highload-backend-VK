@@ -97,7 +97,7 @@ public class ReplicaStatsHandler {
      * Формирует JSON со статистикой данных реплики: количество ключей.
      *
      * @param nodeId номер узла
-     * @return JSON-строка с полями keyCount и dataSizeBytes
+     * @return JSON-строка с полями nodeId и keyCount
      */
     private String buildReplicaStatsJson(int nodeId) {
         long keyCount = 0;

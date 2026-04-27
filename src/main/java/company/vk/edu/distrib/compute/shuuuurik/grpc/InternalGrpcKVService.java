@@ -19,6 +19,7 @@ import reactor.core.publisher.Mono;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.NoSuchElementException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * gRPC-сервер, принимающий внутренние запросы от других нод кластера.
@@ -62,7 +63,9 @@ public class InternalGrpcKVService extends ReactorInternalKVServiceGrpc.Internal
                     .addService(this)
                     .build();
             grpcServer.start();
-            log.info("gRPC server started on port {}", grpcServer.getPort());
+            if (log.isInfoEnabled()) {
+                log.info("gRPC server started on port {}", grpcServer.getPort());
+            }
         } catch (IOException e) {
             throw new UncheckedIOException("Failed to start gRPC server", e);
         }
@@ -78,7 +81,9 @@ public class InternalGrpcKVService extends ReactorInternalKVServiceGrpc.Internal
         }
         grpcServer.shutdown();
         try {
-            grpcServer.awaitTermination();
+            if (!grpcServer.awaitTermination(5, TimeUnit.SECONDS)) {
+                grpcServer.shutdownNow();
+            }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             log.warn("Interrupted while waiting for gRPC server termination");
@@ -102,7 +107,9 @@ public class InternalGrpcKVService extends ReactorInternalKVServiceGrpc.Internal
             // Ключ не найден - возвращается пустой GetResponse (value отсутствует)
             return Mono.just(GetResponse.newBuilder().build());
         } catch (IOException e) {
-            log.error("gRPC Get failed for key={}", request.getKey(), e);
+            if (log.isErrorEnabled()) {
+                log.error("gRPC Get failed for key={}", request.getKey(), e);
+            }
             return Mono.error(e);
         }
     }
@@ -116,7 +123,9 @@ public class InternalGrpcKVService extends ReactorInternalKVServiceGrpc.Internal
             dao.upsert(request.getKey(), request.getValue().toByteArray());
             return Mono.just(Empty.getDefaultInstance());
         } catch (IOException e) {
-            log.error("gRPC Upsert failed for key={}", request.getKey(), e);
+            if (log.isErrorEnabled()) {
+                log.error("gRPC Upsert failed for key={}", request.getKey(), e);
+            }
             return Mono.error(e);
         }
     }
@@ -130,7 +139,9 @@ public class InternalGrpcKVService extends ReactorInternalKVServiceGrpc.Internal
             dao.delete(request.getKey());
             return Mono.just(Empty.getDefaultInstance());
         } catch (IOException e) {
-            log.error("gRPC Delete failed for key={}", request.getKey(), e);
+            if (log.isErrorEnabled()) {
+                log.error("gRPC Delete failed for key={}", request.getKey(), e);
+            }
             return Mono.error(e);
         }
     }

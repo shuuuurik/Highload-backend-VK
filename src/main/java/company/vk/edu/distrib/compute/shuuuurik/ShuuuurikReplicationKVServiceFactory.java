@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 
 /**
- * Создаёт {@link KVServiceReplicaImpl} с файловыми узлами и фактором репликации N из конфига.
+ * Создаёт {@link KVServiceReplicaParallelImpl} с файловыми узлами и фактором репликации N из конфига.
  *
  * <p>Поддерживает два режима работы (переключается флагом {@link #FULL_REPLICATION}):
  * <ul>

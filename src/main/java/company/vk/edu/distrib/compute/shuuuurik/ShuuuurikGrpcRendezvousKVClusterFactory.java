@@ -35,18 +35,35 @@ public class ShuuuurikGrpcRendezvousKVClusterFactory extends KVClusterFactory {
         Map<String, KVService> nodes = new ConcurrentHashMap<>();
         for (NodePorts ports : nodePorts) {
             String httpEndpoint = "http://localhost:" + ports.httpPort();
-            KVService node = new KVServiceGrpcProxyImpl(
-                    ports.httpPort(),
-                    ports.grpcPort(),
-                    new InMemoryDao(),
-                    allHttpEndpoints,
-                    grpcPortMap,
-                    router
-            );
-            nodes.put(httpEndpoint, node);
+            nodes.put(httpEndpoint, createNode(ports, allHttpEndpoints, grpcPortMap, router));
         }
 
         return new ShuuuurikKVCluster(nodes, allHttpEndpoints);
+    }
+
+    /**
+     * Создаёт один узел кластера с собственным InMemoryDao и gRPC-транспортом.
+     *
+     * @param ports            пара портов (httpPort, grpcPort) данного узла
+     * @param allHttpEndpoints все HTTP-эндпоинты кластера
+     * @param grpcPortMap      карта HTTP-endpoint -> grpcPort
+     * @param router           алгоритм маршрутизации
+     * @return готовый {@link KVService} для данного узла
+     */
+    private KVService createNode(
+            NodePorts ports,
+            List<String> allHttpEndpoints,
+            Map<String, Integer> grpcPortMap,
+            RendezvousHashRouter router
+    ) {
+        return new KVServiceGrpcProxyImpl(
+                ports.httpPort(),
+                ports.grpcPort(),
+                new InMemoryDao(),
+                allHttpEndpoints,
+                grpcPortMap,
+                router
+        );
     }
 
     /**

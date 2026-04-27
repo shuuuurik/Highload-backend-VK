@@ -169,13 +169,21 @@ public class KVServiceGrpcProxyImpl implements KVService {
         Map<String, InternalGrpcKVClient> clients = new ConcurrentHashMap<>();
         for (Map.Entry<String, Integer> entry : grpcPortMap.entrySet()) {
             String httpEndpoint = entry.getKey();
-            if (httpEndpoint.equals(selfHttpEndpoint)) {
-                continue;
+            if (!httpEndpoint.equals(selfHttpEndpoint)) {
+                clients.put(httpEndpoint, createGrpcClient(entry.getValue()));
             }
-            String grpcEndpoint = "localhost:" + entry.getValue();
-            clients.put(httpEndpoint, new InternalGrpcKVClient(grpcEndpoint));
         }
         return clients;
+    }
+
+    /**
+     * Создаёт gRPC-клиент для ноды по её grpcPort.
+     *
+     * @param grpcPort порт gRPC-сервера целевой ноды
+     * @return новый {@link InternalGrpcKVClient}
+     */
+    private InternalGrpcKVClient createGrpcClient(int grpcPort) {
+        return new InternalGrpcKVClient("localhost:" + grpcPort);
     }
 
     /**
@@ -190,7 +198,9 @@ public class KVServiceGrpcProxyImpl implements KVService {
             try {
                 entry.getValue().stop();
             } catch (Exception e) {
-                log.warn("Error stopping gRPC client for {}", entry.getKey(), e);
+                if (log.isWarnEnabled()) {
+                    log.warn("Error stopping gRPC client for {}", entry.getKey(), e);
+                }
             }
         }
     }

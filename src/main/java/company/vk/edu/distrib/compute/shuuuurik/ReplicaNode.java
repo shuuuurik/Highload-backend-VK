@@ -35,7 +35,7 @@ public class ReplicaNode {
     private final AtomicBoolean enabled = new AtomicBoolean(true);
 
     /**
-     * Счётчик операций чтения (успешных + 404, то есть любых без IOException).
+     * Счётчик операций чтения, включая случаи когда ключ не найден (успешных + 404, то есть любых без IOException).
      */
     private final AtomicLong readCount = new AtomicLong(0);
 
@@ -89,6 +89,7 @@ public class ReplicaNode {
         checkEnabled();
         Path path = keyPath(key);
         if (!Files.exists(path)) {
+            readCount.incrementAndGet();
             return Optional.empty();
         }
         try (ObjectInputStream ois = new ObjectInputStream(
@@ -126,8 +127,8 @@ public class ReplicaNode {
     }
 
     /**
-     * Подсчитывает количество ключей, хранящихся в данном узле.
-     * Считает файлы в директории, исключая временные (.tmp) и tombstone.
+     * Подсчитывает количество файлов в директории узла (включая tombstone-записи).
+     * Исключает временные (.tmp) файлы.
      *
      * @return количество ключей (файлов) в директории узла
      * @throws IOException при ошибке обхода директории
